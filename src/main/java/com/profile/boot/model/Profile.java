@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class Profile {
 
-	private int profileId;
+	private long profileId;
 	
 	private String displayName;
     private String realName;
@@ -22,10 +22,10 @@ public class Profile {
 	private String occupation ;
 	private String aboutMe;
 	private String location;
-	public int getProfileId() {
+	public long getProfileId() {
 		return profileId;
 	}
-	public void setProfileId(int profileId) {
+	public void setProfileId(long profileId) {
 		this.profileId = profileId;
 	}
 	public String getDisplayName() {

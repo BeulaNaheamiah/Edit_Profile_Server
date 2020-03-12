@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.profile.boot.exception.ProfileException;
@@ -22,10 +23,10 @@ public class ProfileController {
 	private ProfileService profileService;
 
 	@GetMapping("/get")
-	public ResponseEntity<Profile> getProfile() {
+	public ResponseEntity<Profile> getProfile(@RequestParam String profileId) {
 		Profile profile = null;
 		try {
-			profile = profileService.getProfileDetails(100000001);
+			profile = profileService.getProfileDetails(profileId);
 
 		} catch (ProfileException e) {
 			// TODO Auto-generated catch block

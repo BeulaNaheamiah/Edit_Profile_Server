@@ -1,9 +1,15 @@
 package com.profile.boot.service;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
 
@@ -11,8 +17,6 @@ import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.profile.boot.exception.ProfileException;
 import com.profile.boot.model.Profile;
@@ -23,8 +27,10 @@ public class ProfileServiceImpl implements ProfileService {
 	@Value("${profile.location}")
 	private String fileLocation;
 
-	@Value("${profile.separator}")
-	private String dataSeparator;
+
+	@Value("${profile.defaulted.to.one}")
+	private String defaulted;
+
 
 	@Override
 	public String addProfile(Profile profile) {
@@ -44,17 +50,43 @@ public class ProfileServiceImpl implements ProfileService {
 	}
 
 	@Override
-	public Profile getProfileDetails(int profileId) throws ProfileException {
+	public Profile getProfileDetails(String profileId) throws ProfileException {
 		Profile profile = null;
-		try {
-			ObjectMapper mapper = new ObjectMapper();
+		ObjectMapper mapper = new ObjectMapper();
+		try {		
+			profileId =  ProfileService.defaultFile;
+			if(profileId==null) 
+				profile = createProfile(profile, mapper,Boolean.valueOf(defaulted));
+			else
 			 profile = mapper.readValue(new File(fileLocation + profileId), Profile.class);
-			// if(profile!=null && profile.getProfilePicture()!=null) 
-				// profile.setProfilePicture(encodeImage(profile.getProfilePicture()));
-		} catch (Exception e) {
+		} catch(FileNotFoundException f) {
+			profile = createProfile(profile, mapper,Boolean.valueOf(defaulted));
+		}
+		catch (Exception e) {
 			throw new ProfileException("Error Parsing the Prodile Data", e);
 		}
 
+		return profile;
+	}
+
+	private Profile createProfile(Profile profile, ObjectMapper mapper, boolean defaulted) throws ProfileException {
+		try {
+		profile = mapper.readValue(ClassLoader.getSystemResource(ProfileService.defaultFile), Profile.class);
+		profile.setProfileId(defaulted?Long.parseLong(ProfileService.defaultFile):System.currentTimeMillis());
+		//Get the file reference
+		Path path = Paths.get(fileLocation+profile.getProfileId());
+		 
+		//Use try-with-resource to get auto-closeable writer instance
+		try (BufferedWriter writer = Files.newBufferedWriter(path)) 
+		{
+		    writer.write(mapper.writeValueAsString(profile));
+		}
+		}catch(AccessDeniedException e) {
+			throw new ProfileException("Please Check the Path provided has a required access "+fileLocation, e);
+		}
+		catch (Exception e) {
+			throw new ProfileException("Error Parsing the Prodile Data", e);
+		}
 		return profile;
 	}
 

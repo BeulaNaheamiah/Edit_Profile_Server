@@ -5,8 +5,10 @@ import com.profile.boot.model.Profile;
 
 public interface ProfileService {
 	
+	public static final String defaultFile="100000001";
+	
 	public String addProfile(Profile profile);
 	public Profile updateProfile(Profile profile) throws ProfileException;
-	public Profile getProfileDetails(int profileId) throws ProfileException;
+	public Profile getProfileDetails(String profileId) throws ProfileException;
 
 }
